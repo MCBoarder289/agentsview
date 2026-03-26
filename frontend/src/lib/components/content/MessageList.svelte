@@ -210,12 +210,19 @@
     // finds the item rendered (for an exact offset scroll) or
     // repeats with a more accurate estimate. Limit to 15 scroll
     // retries (~480 ms) to avoid looping forever.
+    //
+    // Pass Math.max(waitFrames, 5) so Phase 1 is permanently
+    // disabled for all Phase 2 retries. Without this, if Phase 1
+    // never ran (waitFrames=0), a transient virtualCount mismatch
+    // (e.g. from scroll-triggered loadOlder in ascending sort) can
+    // re-enter Phase 1, reset scrollRetries to 0, and prevent
+    // convergence — causing the viewport to overshoot the target.
     v.scrollToIndex(index, { align: "start" });
     if (scrollRetries < 15) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           scrollToDisplayIndex(
-            index, waitFrames, scrollRetries + 1, reqId,
+            index, Math.max(waitFrames, 5), scrollRetries + 1, reqId,
           );
         });
       });
